@@ -2,7 +2,8 @@
 
 ```bash
 # Only supports python 2.7
-# Use miniconda or smthg
+
+# Use miniconda
 pip install -r requirements.txt
 
 # On terminal one

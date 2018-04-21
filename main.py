@@ -10,8 +10,6 @@ import dag
 import socket
 import json
 
-from pprint import pprint
-
 parser = argparse.ArgumentParser(
     description='DPIM - Decentralized Private Instant Messaging')
 parser.add_argument('--port', required=True, type=int,
@@ -209,10 +207,10 @@ if __name__ == '__main__':
                     target=send_to_server, args=(data, x)).start(), peer_ports))
 
             if cmd_arr[0] == 'getaccount':
-                pprint(dag_state.get_account(cmd_arr[1]))
+                print(json.dumps(dag_state.get_account(cmd_arr[1]), indent=4))
 
             if cmd_arr[0] == 'getmessages':
-                pprint(dag_state.get_messages())
+                print(json.dumps(dag_state.get_messages(), indent=4))
 
             if cmd_arr[0] == 'getmessage':
                 h = cmd_arr[1]
@@ -239,13 +237,13 @@ if __name__ == '__main__':
                 peer_ports.append(port)
 
             if cmd_arr[0] == 'listpeers':
-                pprint({'peers': peer_ports})
+                print(json.dumps({'peers': peer_ports}, indent=4))
 
             if cmd_arr[0] == 'clear':
                 os.system('clear')
 
             if cmd_arr[0] == 'listpk':
-                pprint(user_pk)
+                print(user_pk)
 
             if cmd_arr[0] == 'quit':
                 quit()
