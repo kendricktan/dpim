@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import os
 import address
 import pickle
@@ -42,7 +44,7 @@ if __name__ == '__main__':
     print('Commands:')
     print('\tlistpk')
     print('\taddpeer <port>')
-    print('\tlistpeers')    
+    print('\tlistpeers')
     print('\tgetmessage <hash>')
     print('\tgetmessages')
     print('\tgethash <hash>')
@@ -64,53 +66,55 @@ if __name__ == '__main__':
 
     def listen_to_client(client, _):
         size = 4096
-        while True:
-            try:
-                data = client.recv(size)
-                if data:
-                    # Set the response to echo back the received data
-                    response = data
 
-                    # Reconstruct tx
-                    resp_dict = pickle.loads(response)
+        try:
+            data = client.recv(size)
+            if data:
+                # Set the response to echo back the received data
+                response = data
 
-                    tx = resp_dict['tx']
-                    pk = resp_dict['pk']
+                # Reconstruct tx
+                resp_dict = pickle.loads(response)
 
-                    # Check if we have received the tx or not
-                    # If we have then don't do anything
-                    if dag_state.hash_received(tx):
-                        return
+                tx = resp_dict['tx']
+                pk = resp_dict['pk']
 
-                    # If we haven't received them then add them to state
-                    # and broadcast it to our peers
-                    dag_state.insert_tx(pk, tx)
+                # Check if we have received the tx or not
+                # If we have then don't do anything
+                if dag_state.hash_received(tx.hash):
+                    client.close()
+                    return
 
-                    list(map(lambda x: threading.Thread(
-                        target=send_to_server, args=(data, x)).start(), peer_ports))
+                # If we haven't received them then add them to state
+                # and broadcast it to our peers
+                dag_state.insert_tx(pk, tx)
 
-                    if type(tx) == dag.SendTx:
-                        # Get source tx
-                        source_tx = tx
+                list(map(lambda x: threading.Thread(
+                    target=send_to_server, args=(data, x)).start(), peer_ports))
 
-                        # Get random pk and target pk
-                        r_pk = source_tx.rpk
-                        t_pk = source_tx.destination
+                if type(tx) == dag.SendTx:
+                    # Get source tx
+                    source_tx = tx
 
-                        [constructed_t_pk, f_sk] = address.retrieve_stealth_address(
-                            user_sk, r_pk
-                        )
+                    # Get random pk and target pk
+                    r_pk = source_tx.rpk
+                    t_pk = source_tx.destination
 
-                        # If t_pk matches then its for the user
-                        if t_pk == constructed_t_pk:
-                            print("[!] Message received")
-                            print ">: ",
-                            msg_raw = crypto.decrypt(f_sk, source_tx.msg)
-                            dag_state.add_message(source_tx.hash, msg_raw)
+                    [constructed_t_pk, f_sk] = address.retrieve_stealth_address(
+                        user_sk, r_pk
+                    )
 
-            except:
-                client.close()
-                return False
+                    # If t_pk matches then its for the user
+                    if t_pk == constructed_t_pk:
+                        print("[!] Message received")
+                        print(">: ", end='')
+                        msg_raw = crypto.decrypt(f_sk, source_tx.msg)
+                        dag_state.add_message(source_tx.hash, msg_raw)
+
+        except:
+            pass
+
+        client.close()
 
     # Start socket threading
     tid = threading.Thread(target=listen_thread).start()
@@ -239,7 +243,7 @@ if __name__ == '__main__':
 
             if cmd_arr[0] == 'clear':
                 os.system('clear')
-            
+
             if cmd_arr[0] == 'listpk':
                 pprint(user_pk)
 
@@ -249,5 +253,5 @@ if __name__ == '__main__':
         except KeyboardInterrupt:
             quit()
 
-        except Exception as e:            
+        except Exception as e:
             print('Invalid command')
