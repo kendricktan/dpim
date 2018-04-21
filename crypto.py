@@ -194,18 +194,15 @@ def decodepointcheck(s):
 
 
 def checkvalid(s, m, pk):
-    if len(s) != b/4:
-        raise Exception("signature length is wrong")
+    if len(s) != b/4:        
         return False
-    if len(pk) != b/8:
-        raise Exception("public-key length is wrong")
+    if len(pk) != b/8:        
         return False
     R = decodepoint(s[0:b/8])
     A = decodepoint(pk)
     S = decodeint(s[b/8:b/4])
     h = Hint(encodepoint(R) + pk + m)
-    if scalarmult(B, S) != edwards(R, scalarmult(A, h)):
-        raise Exception("signature does not pass verification")
+    if scalarmult(B, S) != edwards(R, scalarmult(A, h)):        
         return False
     return True
 

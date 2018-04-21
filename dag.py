@@ -36,16 +36,18 @@ ReceiveTx = namedtuple("ReceiveTx", "prev hash source work")
 
 
 class DAG:
-    def __init__(self, usedtxids={}, cachehash={}, accounts={}):
+    def __init__(self, usedtxids={}, cachehash={}, cachedmessages={}, accounts={}):
         """
         params:
 
         usedtxids => {}
         cachehash => {}
+        cachedmessages => {}
         accounts => {}        
 
         usedtxids is a dictionary containing used send txids
         cachehash is a dictionary where key: hash value: tx
+        cachedmessages is a dictionary where key: hash, value: message
         accounts is a dictionary where each key is an address e.g.
 
         accounts = {
@@ -60,6 +62,7 @@ class DAG:
         self.usedtxids = usedtxids
         self.accounts = accounts
         self.cachehash = cachehash
+        self.cachedmessages = cachedmessages
 
     def insert_tx(self, pk, tx):
         t = type(tx)
@@ -109,6 +112,15 @@ class DAG:
 
         self.accounts[pk]['latest'] = new_latest
         self.accounts[pk][new_latest] = tx
+
+    def get_message(self, h):
+        return self.cachedmessages.get(h, None)
+
+    def get_messages(self):
+        return self.cachedmessages
+
+    def add_message(self, h, decrypted_msg):
+        self.cachedmessages[h] = decrypted_msg
 
     def get_latest(self, pk):
         pk_dict = self.accounts.get(pk, {})
